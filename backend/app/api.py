@@ -12,7 +12,7 @@ from app import jobs, storage
 from app.config import get_settings
 from app.db import get_session
 from app.forensics.ingest import UnsupportedFile, sniff
-from app.llm import ChatClient
+from app.llm import create_client
 from app.models import Analysis
 from app.schemas import AnalysisDetail, AnalysisPage, AnalysisSummary, Health
 
@@ -24,7 +24,7 @@ CONTENT_TYPES = {"pdf": "application/pdf", "docx": "application/vnd.openxmlforma
 
 @router.get("/health", response_model=Health)
 def health() -> Health:
-    return Health(status="ok", llm_enabled=ChatClient(get_settings()).enabled)
+    return Health(status="ok", llm_enabled=create_client(get_settings()).enabled)
 
 
 def _get(session: Session, analysis_id: str) -> Analysis:

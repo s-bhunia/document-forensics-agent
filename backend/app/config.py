@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     ocr_lang: str = "eng"
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
 
+    llm_provider: str = "openai"
     llm_base_url: str = "https://api.openai.com/v1"
     llm_api_key: str = ""
     llm_model: str = ""
@@ -25,6 +26,12 @@ class Settings(BaseSettings):
     llm_price_input_per_m: float = 2.0
     llm_price_cached_per_m: float = 0.1
     llm_price_output_per_m: float = 10.0
+    llm_price_cache_write_per_m: float = 0.0
+
+    anthropic_api_key: str = ""
+    anthropic_llm_model: str = ""
+    anthropic_base_url: str = ""
+    anthropic_fallbacks: bool = True
 
 
 @lru_cache

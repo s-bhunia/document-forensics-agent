@@ -8,7 +8,7 @@ from app.agent import Investigator
 from app.config import get_settings
 from app.db import session_factory
 from app.forensics import analyze_file
-from app.llm import ChatClient
+from app.llm import create_client
 from app.models import Analysis
 from app.storage import analysis_dir
 
@@ -27,7 +27,7 @@ def run_analysis(analysis_id: str) -> None:
         try:
             folder = analysis_dir(analysis_id)
             raw = (folder / analysis.stored_name).read_bytes()
-            client = ChatClient(settings)
+            client = create_client(settings)
             investigator = (
                 Investigator(client, max_steps=settings.agent_max_steps, max_images=settings.agent_max_images)
                 if client.enabled

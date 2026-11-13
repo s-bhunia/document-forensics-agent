@@ -15,13 +15,13 @@ from pathlib import Path
 from app.agent import Investigator
 from app.config import get_settings
 from app.forensics import analyze_file
-from app.llm import ChatClient
+from app.llm import create_client
 
 
 def main(folder: Path) -> int:
     labels = json.loads((folder / "labels.json").read_text())
     settings = get_settings()
-    client = ChatClient(settings)
+    client = create_client(settings)
     investigator = Investigator(client, settings.agent_max_steps, settings.agent_max_images) if client.enabled else None
     print(f"mode: {'agent (' + client.model + ')' if investigator else 'rules only'}\n")
     correct = 0

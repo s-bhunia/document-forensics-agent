@@ -76,3 +76,86 @@ def test_chat_raises_after_retries(client, monkeypatch):
     monkeypatch.setattr(httpx, "post", boom)
     with pytest.raises(LLMError):
         client.chat([])
+
+
+class _FakeResponse:
+    def __init__(self, data):
+        self._data = data
+
+    def to_dict(self):
+        return self._data
+
+
+class _FakeSdk:
+    def __init__(self, replies):
+        self.replies, self.calls = list(replies), []
+        self.beta = self
+        self.messages = self
+
+    def create(self, **params):
+        self.calls.append(params)
+        return _FakeResponse(self.replies.pop(0))
+
+
+def _anthropic_settings(**kw):
+    return Settings(llm_provider="anthropic", anthropic_api_key="sk", anthropic_llm_model="claude-sonnet-5-5",
+                    llm_price_input_per_m=2.0, llm_price_cached_per_m=0.2, llm_price_cache_write_per_m=2.5,
+                    llm_price_output_per_m=10.0, **kw)
+
+
+def test_create_client_picks_provider():
+    from app.llm import AnthropicChatClient, create_client
+
+    assert isinstance(create_client(_anthropic_settings()), AnthropicChatClient)
+    assert isinstance(create_client(Settings(llm_provider="openai")), ChatClient)
+    assert create_client(_anthropic_settings()).enabled and create_client(_anthropic_settings()).model == "claude-sonnet-5-5"
+
+
+def test_anthropic_adapter_converts_messages_tools_and_usage():
+    from app.llm import AnthropicChatClient
+
+    thinking = {"type": "thinking", "thinking": "", "signature": "sig"}
+    reply = {"stop_reason": "tool_use",
+             "content": [thinking, {"type": "text", "text": "Measuring."},
+                         {"type": "tool_use", "id": "tu1", "name": "measure", "input": {"word_ids": ["p1w1"]}}],
+             "usage": {"input_tokens": 100, "cache_read_input_tokens": 900, "cache_creation_input_tokens": 50, "output_tokens": 40}}
+    sdk = _FakeSdk([reply, {"stop_reason": "end_turn", "content": [{"type": "text", "text": "done"}], "usage": {"input_tokens": 10, "output_tokens": 5}}])
+    client = AnthropicChatClient(_anthropic_settings(), sdk=sdk)
+    tools = [{"type": "function", "function": {"name": "measure", "description": "d", "parameters": {"type": "object"}}}]
+    messages = [
+        {"role": "system", "content": "SYS"},
+        {"role": "user", "content": [{"type": "text", "text": "look"}, {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,QUJD"}}]},
+    ]
+    out = client.chat(messages, tools=tools)
+    first = sdk.calls[0]
+    assert first["system"] == "SYS" and first["cache_control"] == {"type": "ephemeral"}
+    assert first["betas"] == ["server-side-fallback-2026-07-01"] and first["fallbacks"] == "default"
+    assert first["tools"] == [{"name": "measure", "description": "d", "input_schema": {"type": "object"}}]
+    assert first["messages"][0]["content"][1] == {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": "QUJD"}}
+    assert "temperature" not in first
+    assert out["content"] == "Measuring." and out["tool_calls"][0]["function"]["name"] == "measure"
+
+    messages += [out, {"role": "tool", "tool_call_id": "tu1", "content": "table"},
+                 {"role": "tool", "tool_call_id": "tu2", "content": "Error: bad id"},
+                 {"role": "user", "content": [{"type": "image_url", "image_url": {"url": "data:image/png;base64,WFla"}}]}]
+    client.chat(messages, tools=tools)
+    sent = sdk.calls[1]["messages"]
+    assert sent[1] == {"role": "assistant", "content": reply["content"]}
+    assert [b["type"] for b in sent[2]["content"]] == ["tool_result", "tool_result", "image"]
+    assert sent[2]["content"][1]["is_error"] is True and "is_error" not in sent[2]["content"][0]
+
+    usage = client.usage
+    assert (usage.calls, usage.input_tokens, usage.cached_tokens, usage.cache_write_tokens, usage.output_tokens) == (2, 1060, 900, 50, 45)
+    expected = (110 * 2.0 + 900 * 0.2 + 50 * 2.5 + 45 * 10.0) / 1_000_000
+    assert client.usage_report(1)["cost_usd"] == round(expected, 5)
+
+
+def test_anthropic_errors_become_llm_errors():
+    from app.llm import AnthropicChatClient
+
+    class Boom(_FakeSdk):
+        def create(self, **params):
+            raise RuntimeError("overloaded")
+
+    with pytest.raises(LLMError):
+        AnthropicChatClient(_anthropic_settings(anthropic_fallbacks=False), sdk=Boom([])).chat([{"role": "user", "content": "x"}])
