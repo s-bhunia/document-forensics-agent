@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-export const BATCH_STORAGE_KEY = "doxket-batch";
+export const BATCH_STORAGE_KEY = "forensiq-batch";
 
 function readIds(): string[] {
   try {

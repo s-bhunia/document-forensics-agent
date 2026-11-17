@@ -1,0 +1,557 @@
+<title>Doxket Hybrid Blueprint</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: blueprint reference — sticky contents rail on wide screens, one reading column of diagrams + tables */
+:root{
+  --bg:#f6f7f5; --panel:#ffffff; --fg:#1d211f; --muted:#5d6661; --line:#d9ddd9; --accent:#1d6f5a;
+  --main:#e8e6e1; --proto:#d6f0e6; --new:#fdebc8; --llm:#e4e1fb;
+  --main-b:#8a877f; --proto-b:#1d9e75; --new-b:#ba7517; --llm-b:#534ab7;
+  --font-d:"Space Grotesk",system-ui,sans-serif; --font-b:"Inter",system-ui,sans-serif; --font-m:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141816; --panel:#1b201e; --fg:#e7ebe8; --muted:#9aa49f; --line:#2e3532; --accent:#5dcaa5; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141816; --panel:#1b201e; --fg:#e7ebe8; --muted:#9aa49f; --line:#2e3532; --accent:#5dcaa5; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-b);font-size:15px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px}
+nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:13px}
+nav ol{list-style:none;padding:0;margin:0;display:grid;gap:4px}
+nav a{color:var(--muted);text-decoration:none;display:block;padding:4px 8px;border-radius:6px}
+nav a:hover,nav a:focus-visible{color:var(--fg);background:var(--panel);outline:none}
+nav .lbl{font-family:var(--font-m);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px 8px}
+main{min-width:0;display:grid;gap:48px}
+h1,h2,h3{font-family:var(--font-d);font-weight:600;text-wrap:balance;margin:0}
+h1{font-size:34px;line-height:1.15}
+h2{font-size:23px;margin-bottom:6px}
+h3{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 10px;max-width:72ch}
+.lede{color:var(--muted);font-size:16px;max-width:70ch}
+code{font-family:var(--font-m);font-size:12.5px;background:var(--panel);border:1px solid var(--line);padding:1px 5px;border-radius:4px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel)}
+.sw{width:14px;height:14px;border-radius:3px;border:1.5px solid}
+.diagram{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;margin-top:12px}
+.diagram pre.mermaid{margin:0;min-width:640px;display:flex;justify-content:center;background:transparent}
+.tablebox{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:760px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--font-m);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--bg);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+.tag{font-family:var(--font-m);font-size:11px;padding:1px 7px;border-radius:999px;white-space:nowrap;color:#1d211f;border:1px solid}
+.t-main{background:var(--main);border-color:var(--main-b)}
+.t-proto{background:var(--proto);border-color:var(--proto-b)}
+.t-new{background:var(--new);border-color:var(--new-b)}
+.t-llm{background:var(--llm);border-color:var(--llm-b)}
+.note{border-left:3px solid var(--accent);padding:6px 0 6px 14px;color:var(--muted);margin:12px 0;max-width:72ch}
+ul.tight{margin:6px 0 10px;padding-left:20px} ul.tight li{margin:2px 0}
+ol.steps{padding-left:22px;max-width:72ch} ol.steps li{margin:6px 0}
+@media (max-width:860px){.wrap{grid-template-columns:1fr}nav{position:static}nav ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+</style>
+
+<div class="wrap">
+<nav aria-label="Contents">
+  <p class="lbl">Contents</p>
+  <ol>
+    <li><a href="#overview">0 · Where each part sits</a></li>
+    <li><a href="#timeline">1 · When each part starts</a></li>
+    <li><a href="#service">2 · Forensics service</a></li>
+    <li><a href="#evidence">3 · Evidence layer</a></li>
+    <li><a href="#reading">4 · Reading and logic</a></li>
+    <li><a href="#agent">5 · Investigator agent</a></li>
+    <li><a href="#network">6 · Network check</a></li>
+    <li><a href="#scoring">7 · Scoring</a></li>
+    <li><a href="#release">8 · Release and review</a></li>
+    <li><a href="#parts">9 · Every part, one table</a></li>
+    <li><a href="#build">10 · Build order</a></li>
+  </ol>
+</nav>
+
+<main>
+<header>
+  <h1>Doxket hybrid forensics: blueprint</h1>
+  <p class="lede">The full flow of the planned hybrid: the main project's breadth and scoring, with the prototype's measuring investigator in the middle. Every diagram is colour-coded by where the part comes from, so you can see what already exists, what to port, and what to write new.</p>
+  <div class="legend" aria-label="Colour legend">
+    <span class="chip"><span class="sw" style="background:var(--main);border-color:var(--main-b)"></span>Exists in main project</span>
+    <span class="chip"><span class="sw" style="background:var(--proto);border-color:var(--proto-b)"></span>Port from prototype</span>
+    <span class="chip"><span class="sw" style="background:var(--new);border-color:var(--new-b)"></span>New code to write</span>
+    <span class="chip"><span class="sw" style="background:var(--llm);border-color:var(--llm-b)"></span>LLM call</span>
+  </div>
+</header>
+
+<section id="overview">
+  <h2>0 · Where each part sits</h2>
+  <p>The hybrid keeps the main project's containers. The only new home is <code>apps/forensics/review/agent/</code> inside Django, running on the Celery workers. The forensics service, helper services and storage stay as they are.</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart LR
+  classDef main fill:#e8e6e1,stroke:#8a877f,color:#1d211f
+  classDef proto fill:#d6f0e6,stroke:#1d9e75,color:#1d211f
+  classDef new fill:#fdebc8,stroke:#ba7517,color:#1d211f
+  classDef llm fill:#e4e1fb,stroke:#534ab7,color:#1d211f
+  subgraph BR["Browser"]
+    UI["React UI&lt;br/&gt;upload, score card, tabs,&lt;br/&gt;Investigation log, cost"]
+  end
+  subgraph DJ["Django container: backend"]
+    API["REST API&lt;br/&gt;forensics/views.py"]
+    CB["Internal callbacks&lt;br/&gt;internal_views.py"]
+  end
+  subgraph CE["Celery container: celery-worker"]
+    DISP["Dispatch task&lt;br/&gt;services.py"]
+    REV["Document review&lt;br/&gt;review/run.py"]
+    AG["Investigator agent&lt;br/&gt;review/agent/"]
+    SC["Network + scoring&lt;br/&gt;network.py, scoring/"]
+  end
+  subgraph FS["Forensics container: GPU box or local CPU"]
+    LG["LangGraph pipeline&lt;br/&gt;forensics/graph.py"]
+  end
+  subgraph HS["Helper services"]
+    TS["text-service&lt;br/&gt;orientation, glyphs"]
+    PF["pixel-forensics-service&lt;br/&gt;optional"]
+    OC["Org OCR&lt;br/&gt;via Django internal API"]
+  end
+  subgraph CL["Cloud APIs"]
+    LLM["LLM&lt;br/&gt;Gemini or Claude"]
+    SE["Sightengine&lt;br/&gt;AI-image check"]
+  end
+  subgraph DA["Storage"]
+    PG[("Postgres")]
+    RD[("Redis")]
+    ST[("File storage")]
+  end
+  UI --> API --> DISP --> LG
+  API --> ST
+  DISP --> RD
+  LG --> TS
+  LG --> PF
+  LG --> OC
+  LG -->|"track results"| CB --> PG
+  CB --> REV --> AG --> SC --> PG
+  REV --> LLM
+  REV --> SE
+  AG --> LLM
+  PG --> UI
+  class UI,API,CB,DISP,REV,SC,LG,TS,PF,OC,SE main
+  class AG new
+  class LLM llm
+  </pre></div>
+  <p class="note">Running on your laptop: everything here runs in Docker on CPU. Skip pixel-forensics and the local AI-image models (use Sightengine), or point the forensics step at the GPU box with <code>docker-compose.remote-forensics.yml</code>.</p>
+</section>
+
+<section id="timeline">
+  <h2>1 · When each part starts</h2>
+  <p>Two streams run at once: the forensics service analyses pixels and files while Django's early review reads the content. The agent waits for both, because it needs every lead.</p>
+  <div class="diagram"><pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant U as User / claim
+  participant D as Django
+  participant G as Forensics service
+  participant R as Review (Celery)
+  participant A as Agent
+  participant S as Network + scoring
+  U->>D: Upload file
+  D->>D: Save original, preview page 1, fingerprint file
+  D->>G: POST /analyze, answered 202 at once
+  G->>G: Triage, upright pages, document or photo
+  G-->>D: Rotations known
+  D->>R: Start EARLY review
+  par Forensics service
+    G->>G: PDF structure, classical filters, OCR layout, pixel forensics, capture mode
+    G-->>D: Track results, page by page
+  and Early review
+    R->>R: Transcribe, content check, AI check, seals, Tesseract words, word measurements
+    R->>R: Revisions, PDF edits, DOCX checks
+  end
+  D->>R: All required tracks landed, start FINAL review
+  R->>R: Cross-page check, digit recheck, text strips + consistency, laid-over text, expert checks
+  R->>A: All leads + candidates + page images
+  loop Up to 24 steps
+    A->>A: Tool call, read result, decide next
+  end
+  A->>R: submit_report
+  R->>R: Grounding, one retry back to agent if a finding fails
+  R->>S: All signals
+  S->>S: Network check, region merge, score, band
+  S->>R: Score ready, LLM writes narrative
+  R->>D: Release, or hold for human review
+  D-->>U: Result in UI and claim
+  </pre></div>
+  <ul class="tight">
+    <li><strong>Watchdogs</strong> (exist): a running scan silent for 15 minutes is closed with what landed; a scan queued for 60 minutes fails.</li>
+    <li><strong>Early vs final review</strong> (exists): early runs without OCR or tracks; final re-grounds every quote and adds the parts that need tracks.</li>
+  </ul>
+</section>
+
+<section id="service">
+  <h2>2 · Forensics service (GPU box)</h2>
+  <p>Unchanged in the hybrid except two things: it also accepts DOCX, and the visual judge is used only for photos and objects, because the agent takes over documents.</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart TD
+  classDef main fill:#e8e6e1,stroke:#8a877f,color:#1d211f
+  classDef proto fill:#d6f0e6,stroke:#1d9e75,color:#1d211f
+  classDef new fill:#fdebc8,stroke:#ba7517,color:#1d211f
+  classDef llm fill:#e4e1fb,stroke:#534ab7,color:#1d211f
+  IN["POST /analyze&lt;br/&gt;file + per-scan settings + network signal"] --> TR
+  TR["Triage&lt;br/&gt;PDF pages at 150 DPI + 300 DPI copy&lt;br/&gt;native or scanned, per page&lt;br/&gt;keep original embedded JPEGs"] --> DX
+  DX["DOCX to pages&lt;br/&gt;text + embedded images"] --> ROT
+  ROT["Upright pages + media type&lt;br/&gt;Tesseract orientation"] --- ROTL["Quick LLM call&lt;br/&gt;top edge + document / photo / object"]
+  ROT --> PM{"Precision mode on?"}
+  PM -->|yes| PS["Segment printed / handwriting / logo&lt;br/&gt;early capture mode, optional dewarp"] --> BR
+  PM -->|no| BR{"Document or photo?"}
+  BR -->|document| CC["Content crop&lt;br/&gt;margins removed, boxes mapped back"] --> DOC
+  BR -->|"photo or object"| PHO
+  subgraph DOC["Document analyzers: per page, in parallel"]
+    A1["PDF structure&lt;br/&gt;once per file: saves, edited content,&lt;br/&gt;producer, font subsets, overlays,&lt;br/&gt;whiteout, GSTIN digit, AI tool"]
+    A2["Classical filters&lt;br/&gt;9 filters, see table"]
+    A3["OCR layout&lt;br/&gt;glyph outlier, glyph twin,&lt;br/&gt;grid snap, skew, word jump"]
+    A4["Pixel forensics&lt;br/&gt;optional: 2 families must agree"]
+    A5["Capture mode&lt;br/&gt;phone / flatbed / born digital"]
+  end
+  subgraph PHO["Photo / object analyzers"]
+    P1["AI-image check&lt;br/&gt;Sightengine or 3 local models"]
+    P2["Classical filters"]
+    P3["Capture mode + camera fingerprint"]
+  end
+  DOC --> XP["Cross-page marks&lt;br/&gt;same stamp on two pages"]
+  XP --> OCRB["Org OCR blocks&lt;br/&gt;dates past/future, Indian IDs,&lt;br/&gt;GSTIN state vs PIN"]
+  OCRB --> OUT["Post every track to Django&lt;br/&gt;as soon as it finishes"]
+  PHO --> JG["VLM judge, photos only&lt;br/&gt;global scan, crops, 3 close checks"] --> OUT
+  class IN,TR,ROT,PM,PS,BR,CC,A1,A2,A3,A4,A5,P1,P2,P3,XP,OCRB,OUT main
+  class DX proto
+  class ROTL,JG llm
+  </pre></div>
+
+  <h3>The 9 classical filters, and what the hybrid does with each</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th>Filter</th><th>What it looks for</th><th>Today</th><th>Hybrid</th></tr></thead>
+    <tbody>
+      <tr><td>Noise separation</td><td>Noise left after a median filter, per 16 px block</td><td>Retired</td><td>Leave retired</td></tr>
+      <tr><td>Compression (ELA)</td><td>Areas that react differently to a JPEG re-save</td><td>Display only</td><td>Lead for the agent; scored only through <code>region_forensics</code></td></tr>
+      <tr><td>Grain</td><td>Smoother or noisier patches; grain-free covered rectangles</td><td>Display only</td><td>Lead for the agent; covered patch stays a concern</td></tr>
+      <tr><td>Metadata</td><td>Editing apps, AI tools, date mismatch, stripped EXIF, thumbnail mismatch, C2PA</td><td>Scored</td><td>Keep</td></tr>
+      <tr><td>Copy-move</td><td>Cloned areas (ORB keypoints with the same shift)</td><td>Photos only</td><td>Keep for photos; copied text handled by glyph twin</td></tr>
+      <tr><td>Resampling</td><td>Traces of resizing or rotating</td><td>Retired</td><td>Leave retired</td></tr>
+      <tr><td>Median filter</td><td>Traces of median smoothing on edges</td><td>Scored, reduced trust</td><td>Keep</td></tr>
+      <tr><td>Illuminant map</td><td>Inconsistent light colour</td><td>Retired</td><td>Leave retired</td></tr>
+      <tr><td>ADQ1</td><td>JPEG saved twice (aligned double compression)</td><td>Scored, JPEG only</td><td>Keep</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="evidence">
+  <h2>3 · Evidence layer (code only, in Django)</h2>
+  <p>Everything cheap that can be measured without an LLM. The prototype's word measurements join here. Its line and group consistency checks are merged with main's text strips into one check, keeping the better thresholds. The output is one lead list with no cap, for the agent.</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart LR
+  classDef main fill:#e8e6e1,stroke:#8a877f,color:#1d211f
+  classDef proto fill:#d6f0e6,stroke:#1d9e75,color:#1d211f
+  classDef new fill:#fdebc8,stroke:#ba7517,color:#1d211f
+  subgraph INP["Inputs"]
+    IMG["Upright page image&lt;br/&gt;300 DPI where available"]
+    PDF["Original PDF / DOCX bytes"]
+    TRK["Forensics tracks&lt;br/&gt;classical, OCR layout, pixel, structure"]
+  end
+  subgraph WRD["Words and measurements"]
+    W1["Tesseract words&lt;br/&gt;5-pass merge"]
+    W2["Word features&lt;br/&gt;stroke, stroke contrast, size,&lt;br/&gt;width, ink Lab, contrast, sharpness"]
+    W3["Style consistency&lt;br/&gt;line + group + text strips, merged"]
+    W4["Digit-width peers&lt;br/&gt;same format, same width"]
+    W5["Layout&lt;br/&gt;line angles, round seals"]
+  end
+  subgraph FIL["File evidence"]
+    F1["Revisions&lt;br/&gt;each save vs the one before: from to"]
+    F2["PDF edits&lt;br/&gt;whiteout, second font copy, covers, redactions"]
+    F3["DOCX checks&lt;br/&gt;font changes, later edit session, tracked changes"]
+  end
+  subgraph PIX["Pixel evidence"]
+    X1["Laid-over text&lt;br/&gt;two groups of resampling"]
+    X2["Copied round seals&lt;br/&gt;match 0.90 or more"]
+    X3["ELA, grain, copy-move,&lt;br/&gt;pixel-forensics boxes"]
+    X4["Glyph outlier / twin,&lt;br/&gt;line geometry"]
+  end
+  IMG --> W1 --> W2
+  W2 --> W3
+  W2 --> W4
+  IMG --> W5
+  IMG --> X1
+  IMG --> X2
+  TRK --> X3
+  TRK --> X4
+  PDF --> F1
+  PDF --> F2
+  PDF --> F3
+  W3 --> LEADS
+  W4 --> LEADS
+  X1 --> LEADS
+  X2 --> LEADS
+  X3 --> LEADS
+  X4 --> LEADS
+  F1 --> LEADS
+  F2 --> LEADS
+  F3 --> LEADS
+  LEADS["Lead list&lt;br/&gt;every candidate, with box + numbers,&lt;br/&gt;no cap of 8"]
+  class IMG,PDF,TRK,W5,F1,F2,X1,X2,X3,X4 main
+  class W1,W2,W4,F3 proto
+  class W3,LEADS new
+  </pre></div>
+  <p class="note">Hard file facts (revisions, PDF edits, structure, metadata, ID check digits) go straight to scoring as well. The agent can explain them, but it can't drop them.</p>
+</section>
+
+<section id="reading">
+  <h2>4 · Reading and logic (fixed LLM calls)</h2>
+  <p>Narrow questions where a fixed call is cheaper and more stable than an agent. All exist in main today. One change: quotes are grounded against Tesseract text again, so the check is independent of the model.</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart TD
+  classDef main fill:#e8e6e1,stroke:#8a877f,color:#1d211f
+  classDef new fill:#fdebc8,stroke:#ba7517,color:#1d211f
+  classDef llm fill:#e4e1fb,stroke:#534ab7,color:#1d211f
+  T["Transcribe each page&lt;br/&gt;low thinking"] --> C
+  C["Content check, 8 pages per call&lt;br/&gt;14 finding types with quote + box&lt;br/&gt;IDs with holder, invoice serials, capture type"] --> Q{"Finding about figures?"}
+  Q -->|yes| RE["Digit recheck&lt;br/&gt;second call at 2800 px"] --> GR
+  Q -->|no| GR
+  T --> XP["Cross-page check&lt;br/&gt;multi-page only, final phase"] --> GR
+  T --> EF["Expert facts&lt;br/&gt;document role + facts, text only"] --> ER["22 expert rules&lt;br/&gt;15 in code"] --> GR
+  ER --- EJ["7 rules judged by LLM&lt;br/&gt;medium thinking"]
+  AI["AI-image check&lt;br/&gt;Sightengine, per page"] --> SIG
+  GR["Quote grounding&lt;br/&gt;vs Tesseract text: independent&lt;br/&gt;+ Aadhaar / GSTIN check digits, PAN shape"] --> SIG
+  SIG["Content signals + content leads"]
+  class T,C,RE,XP,EF,EJ llm
+  class Q,ER,AI,SIG main
+  class GR new
+  </pre></div>
+  <h3>The 14 content finding types</h3>
+  <p>Template marker, impossible date, arithmetic mismatch, amount in words mismatch, cross-page contradiction, issuer vs signatory mismatch, implausible content, language anomaly, vague boilerplate, unsigned signature field, locale mismatch, form overprint, concealment, incomplete GST invoice.</p>
+</section>
+
+<section id="agent">
+  <h2>5 · Investigator agent (the new core)</h2>
+  <p>Replaces main's render check (discovery + verification). It starts after the final review has built the lead list, investigates with tools, and must prove each finding with a measurement. The prototype's 10 tools come across; five new tools wrap checks that already exist in main.</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart TD
+  classDef main fill:#e8e6e1,stroke:#8a877f,color:#1d211f
+  classDef proto fill:#d6f0e6,stroke:#1d9e75,color:#1d211f
+  classDef new fill:#fdebc8,stroke:#ba7517,color:#1d211f
+  classDef llm fill:#e4e1fb,stroke:#534ab7,color:#1d211f
+  I1["System prompt&lt;br/&gt;method, template vs edit, ignore markups"] --> L
+  I2["Overview&lt;br/&gt;lines with word ids, metadata, capture type"] --> L
+  I3["Lead list&lt;br/&gt;evidence layer + content leads"] --> L
+  I4["Page images&lt;br/&gt;first pages"] --> L
+  L["LLM investigator&lt;br/&gt;Gemini or Claude"] -->|"tool call"| TOOLS
+  TOOLS -->|"numbers + images"| L
+  subgraph TOOLS["Tools: code on the workspace"]
+    direction LR
+    subgraph LK["Look"]
+      t1["view_page"]
+      t2["zoom"]
+    end
+    subgraph RD["Read"]
+      t3["read_text"]
+      t4["find_peers"]
+    end
+    subgraph MS["Measure"]
+      t5["measure"]
+      t6["compare"]
+      t7["digit_widths"]
+      t8["glyph_check"]
+    end
+    subgraph PX["Pixels"]
+      t9["region_forensics&lt;br/&gt;ELA, grain, copy-move,&lt;br/&gt;pixel-forensics boxes"]
+    end
+    subgraph FL["File"]
+      t10["revision_diff"]
+      t11["pdf_objects"]
+    end
+    subgraph MK["Marks + facts"]
+      t12["compare_marks"]
+      t13["validate"]
+    end
+  end
+  WS["Workspace memory&lt;br/&gt;measured words, checked regions,&lt;br/&gt;file checks run"]
+  TOOLS --- WS
+  LIM["Limits&lt;br/&gt;24 steps, 14 images, 2 nudges,&lt;br/&gt;then forced report"]
+  LIM -.- L
+  L -->|"finished"| SUB["submit_report&lt;br/&gt;verdict, summary, findings&lt;br/&gt;with word ids or box + numbers"]
+  SUB --> GR{"Every finding grounded?"}
+  GR -->|"no, first time"| BACK["Tell the agent which findings failed&lt;br/&gt;and what to measure"] --> L
+  GR -->|"yes, or after the retry"| OUT["Agent findings&lt;br/&gt;each tagged with evidence type"]
+  class I1,I2,I4,t1,t2,t3,t4,t5,t6,t7,t9,t13,WS,LIM,SUB proto
+  class I3,t8,t10,t11,t12,GR,BACK,OUT new
+  class L llm
+  </pre></div>
+
+  <h3>The 13 tools</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th>Tool</th><th>From</th><th>What it returns</th></tr></thead>
+    <tbody>
+      <tr><td><code>view_page</code></td><td><span class="tag t-proto">prototype</span></td><td>The whole page as an image</td></tr>
+      <tr><td><code>zoom</code></td><td><span class="tag t-proto">prototype</span></td><td>A close crop of a box, plus the word ids inside it</td></tr>
+      <tr><td><code>read_text</code></td><td><span class="tag t-proto">prototype</span></td><td>More lines with word ids; should also offer the transcription</td></tr>
+      <tr><td><code>find_peers</code></td><td><span class="tag t-proto">prototype</span></td><td>Fair peers for a word: same line, same colour and size, same number format</td></tr>
+      <tr><td><code>measure</code></td><td><span class="tag t-proto">prototype</span></td><td>The 7 measurements for chosen words</td></tr>
+      <tr><td><code>compare</code></td><td><span class="tag t-proto">prototype</span></td><td>Target vs peers per feature; "stands out" only past a threshold and 3× the peers' spread</td></tr>
+      <tr><td><code>digit_widths</code></td><td><span class="tag t-proto">prototype</span></td><td>Every formatted number with its width; OUTLIER when peers agree better with each other</td></tr>
+      <tr><td><code>glyph_check</code></td><td><span class="tag t-new">new</span></td><td>Wraps OCR-layout results for a box: letters drawn differently, pixel-identical letters (copied text), line geometry</td></tr>
+      <tr><td><code>region_forensics</code></td><td><span class="tag t-proto">prototype</span> + <span class="tag t-new">new</span></td><td>Compression and grain vs the page, copy-move hits, and pixel-forensics boxes touching the region</td></tr>
+      <tr><td><code>revision_diff</code></td><td><span class="tag t-new">new</span></td><td>What changed in a page or box between PDF saves ("from → to")</td></tr>
+      <tr><td><code>pdf_objects</code></td><td><span class="tag t-new">new</span></td><td>For a box: whiteout under text, second font copy, covers, redactions</td></tr>
+      <tr><td><code>compare_marks</code></td><td><span class="tag t-new">new</span></td><td>Compares two stamps or seals: score and verdict</td></tr>
+      <tr><td><code>validate</code></td><td><span class="tag t-proto">prototype</span></td><td>Aadhaar, PAN, GSTIN and date checks on any text</td></tr>
+      <tr><td><code>submit_report</code></td><td><span class="tag t-proto">prototype</span></td><td>Ends the loop; goes through grounding</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Grounding rules (code)</h3>
+  <ul class="tight">
+    <li><strong>Text findings</strong> (style, ink, digits, glyphs): the exact words were measured with <code>measure</code>, <code>compare</code>, <code>digit_widths</code> or <code>glyph_check</code>.</li>
+    <li><strong>Region findings</strong> (compression, grain, copy-move, patch): <code>region_forensics</code> ran on an overlapping box.</li>
+    <li><strong>File findings</strong>: <code>revision_diff</code> or <code>pdf_objects</code> ran, or a matching file lead exists.</li>
+    <li><strong>Visual-only findings</strong>: allowed, but scored as a weak signal.</li>
+    <li><strong>Fails</strong>: the agent is told once and may measure and resubmit; if it still fails, the finding is kept as info, not scored.</li>
+  </ul>
+</section>
+
+<section id="network">
+  <h2>6 · Network check (exists)</h2>
+  <p>Compares the scan with the organization's other uploads and claims. Unchanged in the hybrid.</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart LR
+  classDef main fill:#e8e6e1,stroke:#8a877f,color:#1d211f
+  subgraph FP["Fingerprints saved per scan"]
+    H1["File SHA-256"]
+    H2["Page perceptual + tile hashes"]
+    H3["Aadhaar, PAN, GSTIN, bank account,&lt;br/&gt;IFSC, phone: keyed digest + holder"]
+    H4["Invoice serials&lt;br/&gt;issuer + number + date + total"]
+  end
+  FP --> MT["Look up matches&lt;br/&gt;same organization only"]
+  MT --> G1["Same file or page image elsewhere&lt;br/&gt;tell, unless same owner"]
+  MT --> G2["Same personal number,&lt;br/&gt;different holder or a claim: tell"]
+  MT --> G3["GSTIN on 5+ documents in 30 days&lt;br/&gt;shown only"]
+  MT --> G4["Serial reused with other date or total: tell&lt;br/&gt;out of sequence or wrong year: concern"]
+  class H1,H2,H3,H4,MT,G1,G2,G3,G4 main
+  </pre></div>
+</section>
+
+<section id="scoring">
+  <h2>7 · Scoring (code)</h2>
+  <p>Main's scorer, with one important change: an agent finding's weight comes from its <strong>evidence type</strong> (for example "digit-width outlier confirmed by compare"), never from the severity the LLM chose. The weights are then fitted on labelled data.</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart TD
+  classDef main fill:#e8e6e1,stroke:#8a877f,color:#1d211f
+  classDef new fill:#fdebc8,stroke:#ba7517,color:#1d211f
+  S1["Content signals"] --> MAP
+  S2["Agent findings&lt;br/&gt;by evidence type"] --> MAP
+  S3["File signals&lt;br/&gt;revisions, PDF edits, structure"] --> MAP
+  S4["Pixel + metadata signals"] --> MAP
+  S5["Network signals"] --> MAP
+  S6["Expert check results"] --> MAP
+  S7["AI-image signal"] --> MAP
+  MAP["Signal table&lt;br/&gt;tell, soft, pass, info, warning&lt;br/&gt;likelihood ratio per type"] --> RM
+  RM["Merge by region&lt;br/&gt;same spot on a page = one region"] --> IV{"Holds a value, and two&lt;br/&gt;measured families agree?"}
+  IV -->|yes| TL["Tell: Inserted value"] --> DC
+  IV -->|no| DC
+  DC["Diminishing credit&lt;br/&gt;strongest in full, others at 0.25&lt;br/&gt;top region full, next two at 0.25"] --> CORE
+  CORE["Start at 5% prior, add evidence&lt;br/&gt;p = higher of sigmoid and tell floor"] --> BD{"Band"}
+  BD -->|"p 0.70+ or any tell"| HI["High: highly risky"]
+  BD -->|"p 0.30+ or a warning"| MD["Medium: suspicious"]
+  BD -->|"otherwise"| LO["Low: likely authentic"]
+  CAL["Calibration&lt;br/&gt;fit likelihood ratios on labelled set&lt;br/&gt;re-score stored scans for free"] -.-> MAP
+  class S1,S3,S4,S5,S6,S7,RM,IV,TL,DC,CORE,BD,HI,MD,LO main
+  class S2,MAP,CAL new
+  </pre></div>
+  <p class="note">Measured families for the "Inserted value" rule: geometry, lettering, pixel, ink. In the hybrid, agent evidence counts as a measured family when it came from <code>compare</code>, <code>digit_widths</code>, <code>glyph_check</code> or <code>region_forensics</code>.</p>
+</section>
+
+<section id="release">
+  <h2>8 · Release and human review</h2>
+  <div class="diagram"><pre class="mermaid">
+flowchart LR
+  classDef main fill:#e8e6e1,stroke:#8a877f,color:#1d211f
+  classDef new fill:#fdebc8,stroke:#ba7517,color:#1d211f
+  classDef llm fill:#e4e1fb,stroke:#534ab7,color:#1d211f
+  SC["Score + band + signals"] --> NA["Narrative&lt;br/&gt;2-3 sentences, cites real signal ids"]
+  NA --> HQ{"Human review on&lt;br/&gt;and band medium?"}
+  HQ -->|yes| HR["Hold: requires review&lt;br/&gt;reviewer marks authentic, forged or keep"] --> UP["Update label AND score"] --> RL
+  HQ -->|no| RL["Release&lt;br/&gt;completed or partial, completion time"]
+  RL --> UI["UI&lt;br/&gt;score card, findings on page, tabs,&lt;br/&gt;Investigation log, tokens + cost"]
+  RL --> CLM["Insurance claim updated"]
+  RL --> EV["Eval harness&lt;br/&gt;false flags, recall, flips"]
+  COST["Cost tracking&lt;br/&gt;all LLM calls incl. agent + Sightengine"] -.-> UI
+  class SC,HQ,HR,RL,CLM main
+  class NA llm
+  class UP,UI,EV,COST new
+  </pre></div>
+</section>
+
+<section id="parts">
+  <h2>9 · Every part, one table</h2>
+  <p>In flow order. "Starts" says what has to be ready first.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th>Part</th><th>Sits in</th><th>Starts</th><th>From</th><th>LLM</th><th>Scored</th></tr></thead>
+    <tbody>
+      <tr><td>Upload (multi-file)</td><td>React UI</td><td>User action</td><td><span class="tag t-main">main</span> + <span class="tag t-proto">batch upload</span></td><td>–</td><td>–</td></tr>
+      <tr><td>Create scan, preview, dispatch</td><td><code>services.py</code></td><td>On upload</td><td><span class="tag t-main">main</span></td><td>–</td><td>–</td></tr>
+      <tr><td>File fingerprint</td><td><code>network.py</code></td><td>After commit</td><td><span class="tag t-main">main</span></td><td>–</td><td>Via network</td></tr>
+      <tr><td>Triage, native vs scanned</td><td><code>forensics/file_triage.py</code></td><td>Service receives file</td><td><span class="tag t-main">main</span></td><td>–</td><td>–</td></tr>
+      <tr><td>DOCX to pages</td><td><code>file_triage.py</code></td><td>During triage</td><td><span class="tag t-proto">prototype</span></td><td>–</td><td>–</td></tr>
+      <tr><td>Upright + media type</td><td><code>graph.py</code></td><td>After triage</td><td><span class="tag t-main">main</span></td><td>Quick call</td><td>–</td></tr>
+      <tr><td>Precision mode</td><td><code>graph.py</code></td><td>If switched on</td><td><span class="tag t-main">main</span></td><td>–</td><td>–</td></tr>
+      <tr><td>Content crop</td><td><code>content_crop.py</code></td><td>Documents</td><td><span class="tag t-main">main</span></td><td>–</td><td>–</td></tr>
+      <tr><td>PDF structure</td><td><code>engine/pdf_structure.py</code></td><td>Once per PDF</td><td><span class="tag t-main">main</span></td><td>–</td><td>Yes</td></tr>
+      <tr><td>Classical filters (9)</td><td><code>engine/classical/</code></td><td>Per page</td><td><span class="tag t-main">main</span></td><td>–</td><td>4 of 9</td></tr>
+      <tr><td>OCR layout (glyphs, lines)</td><td><code>text-service</code></td><td>Documents, per page</td><td><span class="tag t-main">main</span></td><td>–</td><td>Via agent / regions</td></tr>
+      <tr><td>Pixel forensics</td><td><code>pixel-forensics-service</code></td><td>If org toggle on</td><td><span class="tag t-main">main</span></td><td>–</td><td>Yes</td></tr>
+      <tr><td>Capture mode</td><td><code>engine/capture_mode.py</code></td><td>Per page</td><td><span class="tag t-main">main</span></td><td>–</td><td>Softens pixel trust</td></tr>
+      <tr><td>AI-image (photos)</td><td><code>engine/models/</code></td><td>Photo branch</td><td><span class="tag t-main">main</span></td><td>–</td><td>Yes</td></tr>
+      <tr><td>Cross-page marks</td><td><code>engine/cross_page.py</code></td><td>2+ pages</td><td><span class="tag t-main">main</span></td><td>–</td><td>Yes</td></tr>
+      <tr><td>Org OCR facts (dates, IDs, GSTIN geo)</td><td><code>graph.py</code></td><td>Documents</td><td><span class="tag t-main">main</span></td><td>–</td><td>Via review</td></tr>
+      <tr><td>VLM judge</td><td><code>engine/reasoning.py</code></td><td>Photos only in hybrid</td><td><span class="tag t-main">main</span></td><td>Yes</td><td>Photos</td></tr>
+      <tr><td>Early review trigger</td><td><code>internal_views.py</code></td><td>Rotations known</td><td><span class="tag t-main">main</span></td><td>–</td><td>–</td></tr>
+      <tr><td>Transcribe</td><td><code>review/run.py</code></td><td>Early review</td><td><span class="tag t-main">main</span></td><td>Yes</td><td>–</td></tr>
+      <tr><td>Tesseract words (5-pass)</td><td><code>review/words.py</code></td><td>Early review</td><td><span class="tag t-proto">prototype</span> merge</td><td>–</td><td>–</td></tr>
+      <tr><td>Word features</td><td><code>review/measure.py</code></td><td>After words</td><td><span class="tag t-proto">prototype</span></td><td>–</td><td>Via agent</td></tr>
+      <tr><td>Style consistency (merged)</td><td><code>review/strips.py</code></td><td>After features</td><td><span class="tag t-new">new merge</span></td><td>–</td><td>Via agent</td></tr>
+      <tr><td>Digit-width peers</td><td><code>review/digits.py</code></td><td>After features</td><td><span class="tag t-proto">prototype</span></td><td>–</td><td>Via agent</td></tr>
+      <tr><td>Layout, seals</td><td><code>review/layout.py</code>, <code>marks.py</code></td><td>Early review</td><td><span class="tag t-main">main</span></td><td>–</td><td>Seals yes</td></tr>
+      <tr><td>Laid-over text</td><td><code>review/laid_over.py</code></td><td>Final review</td><td><span class="tag t-main">main</span></td><td>–</td><td>Weak</td></tr>
+      <tr><td>Revisions</td><td><code>review/revisions.py</code></td><td>Early review</td><td><span class="tag t-main">main</span></td><td>–</td><td>Yes, strong</td></tr>
+      <tr><td>PDF edits</td><td><code>review/pdf_edits.py</code></td><td>Early review</td><td><span class="tag t-main">main</span></td><td>–</td><td>Yes, strong</td></tr>
+      <tr><td>DOCX checks</td><td><code>review/docx_checks.py</code></td><td>Early review</td><td><span class="tag t-proto">prototype</span></td><td>–</td><td>Yes</td></tr>
+      <tr><td>Content check</td><td><code>review/run.py</code></td><td>After transcription</td><td><span class="tag t-main">main</span></td><td>Yes</td><td>Yes</td></tr>
+      <tr><td>Digit recheck</td><td><code>review/run.py</code></td><td>Figure findings</td><td><span class="tag t-main">main</span></td><td>Yes</td><td>Filters</td></tr>
+      <tr><td>Cross-page check</td><td><code>review/run.py</code></td><td>Final, 2+ pages</td><td><span class="tag t-main">main</span></td><td>Yes</td><td>Yes</td></tr>
+      <tr><td>AI-image check (documents)</td><td><code>review/ai_detector.py</code></td><td>Early review</td><td><span class="tag t-main">main</span></td><td>–</td><td>Yes</td></tr>
+      <tr><td>Expert facts + rules</td><td><code>apps/knowledge/</code></td><td>End of final review</td><td><span class="tag t-main">main</span></td><td>Yes</td><td>Yes</td></tr>
+      <tr><td>Quote grounding vs OCR</td><td><code>review/grounding.py</code></td><td>Final review</td><td><span class="tag t-new">change</span></td><td>–</td><td>Gates tells</td></tr>
+      <tr><td>Investigator agent</td><td><code>review/agent/</code></td><td>After lead list</td><td><span class="tag t-proto">prototype</span> + <span class="tag t-new">new tools</span></td><td>Yes</td><td>Via signals</td></tr>
+      <tr><td>Grounding + one retry</td><td><code>review/agent/grounding.py</code></td><td>On submit</td><td><span class="tag t-new">new</span></td><td>–</td><td>Gates agent</td></tr>
+      <tr><td>Network check</td><td><code>network.py</code>, <code>serials.py</code></td><td>Before scoring</td><td><span class="tag t-main">main</span></td><td>–</td><td>Yes</td></tr>
+      <tr><td>Signal mapping for agent</td><td><code>scoring/signals.py</code></td><td>Scoring</td><td><span class="tag t-new">new</span></td><td>–</td><td>Yes</td></tr>
+      <tr><td>Region merge, score, band</td><td><code>scoring/aggregate.py</code>, <code>core.py</code></td><td>After network</td><td><span class="tag t-main">main</span></td><td>–</td><td>Is the score</td></tr>
+      <tr><td>Narrative</td><td><code>review/run.py</code></td><td>After score</td><td><span class="tag t-main">main</span></td><td>Yes</td><td>–</td></tr>
+      <tr><td>Human review</td><td><code>views.py</code></td><td>Medium band, if on</td><td><span class="tag t-main">main</span> + <span class="tag t-new">fix</span></td><td>–</td><td>Overrides</td></tr>
+      <tr><td>Release, notify claim</td><td><code>tasks.py</code></td><td>After review or hold</td><td><span class="tag t-main">main</span></td><td>–</td><td>–</td></tr>
+      <tr><td>Watchdogs</td><td><code>tasks.py</code></td><td>Celery beat</td><td><span class="tag t-main">main</span></td><td>–</td><td>–</td></tr>
+      <tr><td>Cost tracking</td><td><code>costs.py</code></td><td>Every call</td><td><span class="tag t-main">main</span> + <span class="tag t-new">agent, Sightengine</span></td><td>–</td><td>–</td></tr>
+      <tr><td>Eval harness</td><td><code>scripts/forensics_eval.py</code></td><td>On demand</td><td><span class="tag t-main">main</span> + <span class="tag t-new">read new score</span></td><td>–</td><td>–</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">File names marked as new (<code>measure.py</code>, <code>digits.py</code>, <code>docx_checks.py</code>, <code>agent/</code>) are suggestions; place them where they fit your style.</p>
+</section>
+
+<section id="build">
+  <h2>10 · Build order</h2>
+  <p>Each step can be tested on its own before the next one starts.</p>
+  <ol class="steps">
+    <li><strong>Word measurements in Django.</strong> Port word features and digit-width peers into the review as code-only checks. Test: numbers match the prototype on the same pages.</li>
+    <li><strong>Merge the style checks.</strong> One consistency check from the prototype's line/group logic and main's text strips. Test on the labelled set.</li>
+    <li><strong>Lead list.</strong> Collect every candidate from evidence and content into one list with boxes and numbers.</li>
+    <li><strong>Agent workspace and tools.</strong> Port the 10 prototype tools onto Django's page data; add <code>glyph_check</code>, <code>revision_diff</code>, <code>pdf_objects</code>, <code>compare_marks</code>.</li>
+    <li><strong>Agent loop and LLM client.</strong> Port the loop with Gemini and Claude support, limits and usage tracking.</li>
+    <li><strong>Grounding with one retry.</strong></li>
+    <li><strong>Signal mapping.</strong> Map each evidence type to a signal; agent evidence joins the "Inserted value" families.</li>
+    <li><strong>Switch and shadow run.</strong> Run the agent next to the render check behind a setting; compare both on the eval harness.</li>
+    <li><strong>Eval and calibration.</strong> Fix the harness to read the new score and skip the cache; fit the likelihood ratios.</li>
+    <li><strong>Extras.</strong> DOCX support, grounding against OCR, human review updating the score, cost tracking for the agent and Sightengine.</li>
+  </ol>
+</section>
+</main>
+</div>

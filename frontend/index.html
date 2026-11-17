@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Doxket Forensics - detect edits and forgery in documents and screenshots." />
+    <meta name="description" content="ForensIQ - detect edits and forgery in documents and screenshots." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,11 +11,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>Doxket Forensics</title>
+    <title>ForensIQ</title>
     <script>
       (function () {
         var theme = null;
-        try { theme = localStorage.getItem("doxket-theme"); } catch (e) {}
+        try { theme = localStorage.getItem("forensiq-theme"); } catch (e) {}
         var dark = theme === "dark" || ((!theme || theme === "system") && window.matchMedia("(prefers-color-scheme: dark)").matches);
         if (dark) document.documentElement.classList.add("dark");
       })();

@@ -1,7 +1,16 @@
-# Doxket Forensics
+# ForensIQ
 
-Finds signs of editing in screenshots, scans, photos, PDFs and Word documents. Upload a file and get a risk
-score, a summary and a list of findings, each boxed on the page.
+ForensIQ is an AI agent-driven document forensics platform. It finds signs of editing and forgery in
+screenshots, scans, photos, PDFs and Word documents. Upload a file and get a risk level, a short explanation
+and a list of findings, each boxed on the page with the measurements behind it.
+
+How it works, in one line: fast code checks collect evidence, an AI investigator agent examines the
+suspicious spots with measuring tools, every claim must be backed by a measurement, and code computes the
+final score.
+
+> **Status:** prototype (Minor Project-I). The core pipeline and the investigator agent run end to end.
+> Cross-document checks, revision-by-revision PDF comparison, AI-generated document detection and
+> calibrated scoring are planned for the next phase.
 
 ## Quick start
 
@@ -48,25 +57,32 @@ browser ──► web (nginx + React) ──/api──► api (FastAPI) ──�
 | PDF checks | Incremental revisions, editing tools in producer/creator, font changes inside a line, the same font embedded twice, filled boxes over scanned images, visible text typed over a scan. | PyMuPDF |
 | DOCX checks | Font/size changes inside a paragraph, values typed in a later editing session (rsid), tracked changes, author vs last editor. | python-docx |
 | ID checks | PAN holder type, Aadhaar Verhoeff checksum, GSTIN checksum, impossible calendar dates. | |
-| AI review (optional) | Any OpenAI-compatible chat API writes the summary and adds semantic findings (totals, date order, cross-field mismatches). | httpx |
+| Investigator agent (optional) | An LLM (Gemini or Claude) looks at the pages and the leads above, calls measuring tools (zoom, measure, compare, digit widths, region forensics, ID checks) and submits a report. Findings it did not measure are downgraded. | httpx, anthropic |
 | Scoring | Severity-weighted, diminishing per category, into `likely_authentic`, `suspicious` or `highly_risky`. | |
 
 Findings carry normalised boxes, the measured values and the peer medians so a reviewer can see why something
 was flagged. Template quirks (whole paragraphs in another font, uneven photocopy quality) are deliberately
 weighted low; changes *within* a line or a field are weighted high.
 
-## AI review
+## Investigator agent
 
-Set these in `.env`, then `docker compose up -d`:
+Set one provider in `.env`, then `docker compose up -d`:
 
 ```
-LLM_BASE_URL=https://api.openai.com/v1     # or any OpenAI-compatible endpoint
+# Gemini (or any OpenAI-compatible endpoint)
+LLM_PROVIDER=openai
+LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
 LLM_API_KEY=...
-LLM_MODEL=...
-LLM_JSON_MODE=true                         # set false if the provider rejects response_format
+LLM_MODEL=gemini-4-argon
+
+# or Claude
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=...
+ANTHROPIC_LLM_MODEL=claude-sonnet-5-5
 ```
 
-Without a key the pipeline runs fully and writes a rule-based summary.
+Token use and cost per page are shown with every result. Without a key the pipeline runs fully and writes
+a rule-based summary.
 
 ## Tests
 

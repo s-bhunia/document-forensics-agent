@@ -30,7 +30,7 @@ export function Layout() {
           >
             <LogoMark className="h-7 w-7" />
             <span className="text-sm font-semibold tracking-tight sm:text-base">
-              Doxket <span className="hidden text-slate-500 dark:text-slate-400 min-[440px]:inline">Forensics</span>
+              ForensIQ <span className="hidden text-slate-500 dark:text-slate-400 min-[440px]:inline">Document Forensics</span>
             </span>
           </Link>
           <nav aria-label="Main" className="ml-auto flex items-center gap-1 sm:ml-6 sm:mr-auto">

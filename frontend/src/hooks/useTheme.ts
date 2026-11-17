@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { readStorage, writeStorage } from "../lib/storage";
 
 export type ThemePreference = "light" | "dark" | "system";
-export const THEME_STORAGE_KEY = "doxket-theme";
+export const THEME_STORAGE_KEY = "forensiq-theme";
 
 function systemPrefersDark(): boolean {
   return typeof window !== "undefined" && typeof window.matchMedia === "function"

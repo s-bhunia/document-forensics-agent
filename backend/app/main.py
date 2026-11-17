@@ -19,7 +19,7 @@ async def lifespan(_: FastAPI):
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Doxket Forensics API", version="1.0.0", lifespan=lifespan)
+    app = FastAPI(title="ForensIQ API", version="1.0.0", lifespan=lifespan)
     origins = [o.strip() for o in get_settings().cors_origins.split(",") if o.strip()]
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["*"], allow_headers=["*"])
     app.include_router(router)

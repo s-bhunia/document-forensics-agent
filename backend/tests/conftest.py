@@ -9,7 +9,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-_TMP = Path(tempfile.mkdtemp(prefix="doxket-tests-"))
+_TMP = Path(tempfile.mkdtemp(prefix="forensiq-tests-"))
 os.environ.update(
     {
         "DATABASE_URL": f"sqlite:///{(_TMP / 'test.db').as_posix()}",
